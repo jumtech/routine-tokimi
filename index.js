@@ -36,7 +36,7 @@ app.post('/callback', function(req, res, next) {
         json: true,
         body: postData
       };
-      request.post(url, options, function (err, res, body) {
+      request.post(options, function (err, res, body) {
         if (!err && res.statusCode == 200) {
           console.log(body);
         } else {
