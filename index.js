@@ -1,9 +1,9 @@
-var express = require('express');
-var app = express();
+const express = require('express');
+const app = express();
 
-var request = require('request');
-var morgan = require('morgan');
-var bodyParser = require('body-parser');
+const request = require('request');
+const morgan = require('morgan');
+const bodyParser = require('body-parser');
 
 app.use(morgan({ format: 'dev', immediate: true}));
 app.use(bodyParser.urlencoded({
@@ -54,6 +54,8 @@ app.post('/callback', function(req, res, next) {
       /* ブロック */
     }
   });
+  res.statusCode = 200;
+  res.end();
 });
 
 app.get('/test', function(req, res) {
