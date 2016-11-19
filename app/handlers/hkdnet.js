@@ -1,20 +1,7 @@
-const express = require('express');
-const app = express();
+module.exports = function(req, res) {
+  res.statusCode = 200;
+  res.end();
 
-const request = require('request');
-const morgan = require('morgan');
-const bodyParser = require('body-parser');
-
-const hkdnetHandler = require('./app/handlers/hkdnet.js');
-
-app.use(morgan("dev", {immediate: true}));
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
-app.use(bodyParser.json());
-
-
-app.post('/callback', function(req, res, next) {
   var events = req.body.events;
   events.forEach(function(event) {
     if (event.type == "message") {
@@ -23,7 +10,7 @@ app.post('/callback', function(req, res, next) {
         "messages" : [
           {
             "type" : "text",
-            "text" : ((event.message.type=="text") ? event.message.text : "ちょっと難しいなあ")
+            "text" : ((event.message.type=="text") ? event.message.text : "Text以外")
           }
         ]
       };
@@ -31,7 +18,7 @@ app.post('/callback', function(req, res, next) {
         url: "https://api.line.me/v2/bot/message/reply",
         headers: {
           "Content-Type" : "application/json; charset=UTF-8",
-          "Authorization" : "Bearer " + process.env.CHANNEL_ACCESS_TOKEN
+          "Authorization" : "Bearer " + process.env.HKDNET_TOKEN
         },
         json: true,
         body: postData
@@ -49,15 +36,4 @@ app.post('/callback', function(req, res, next) {
       /* ブロック */
     }
   });
-  // Web hookへのリクエストに200を返す
-  res.statusCode = 200;
-  res.end();
-});
-
-app.get('/test', function(req, res) {
-  res.send("TOKIMI is AWAKE");
-});
-
-app.post('/hkdnet', hkdnetHandler);
-app.listen(process.env.PORT || 3000);
-console.log("server starting...");
+};
