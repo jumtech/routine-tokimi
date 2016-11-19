@@ -1,7 +1,7 @@
-const assert = require('assert');
+const assert = require('power-assert');
 
 describe('test', function() {
   it('fail', ()=> {
-    assert.equal(1, 2);
+    assert(1 == 2);
   });
 });
