@@ -1,6 +1,5 @@
 'use strict';
 
-const request = require('request');
 const ReplySender = require('../models/ReplySender.js');
 const ReplySenderConfig = require('../models/ReplySenderConfig.js');
 const config = new ReplySenderConfig({token: process.env.HKDNET_TOKEN});
@@ -11,17 +10,17 @@ module.exports = function (req, res, next) {
   res.end();
   var events = req.body.events;
   events.forEach(function (event) {
-    if (event.type == "message") {
+    if (event.type === "message") {
       var messages = [
         {
           "type": "text",
-          "text": ((event.message.type == "text") ? event.message.text : "Text以外")
+          "text": ((event.message.type === "text") ? event.message.text : "Text以外")
         }
       ];
       sender.send(event.replyToken, messages);
-    } else if (event.type == "follow") {
+    } else if (event.type === "follow") {
       /* 友達追加・ブロック解除 */
-    } else if (event.type == "unfollow") {
+    } else if (event.type === "unfollow") {
       /* ブロック */
     }
   });

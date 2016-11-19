@@ -28,7 +28,7 @@ class ReplySender {
       body: postData
     });
     request.post(options, function (err, res, body) {
-      if (!err && res.statusCode == 200) {
+      if (!err && res.statusCode === 200) {
         console.log(body);
       } else {
         console.log('error: ' + JSON.stringify(res));
