@@ -1,0 +1,2 @@
+#!/bin/bash
+curl -X POST http://localhost:8080/callback -H "Accept: application/json" -H "Content-type: application/json" -d '{"events": [{"replyToken": "nHuyWiB7yP5Zw52FIkcQobQuGDXCTA","type": "message","timestamp": 1462629479859,"source": { "type": "user", "userId": "U206d25c2ea6bd87c17655609a1c37cb8" }, "message": { "id": "325708", "type": "text", "text": "Hello, world"}}]}'
