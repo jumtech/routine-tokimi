@@ -1,0 +1,12 @@
+version: '2'
+services:
+  node:
+    build: .
+    ports:
+      - 8080:3000
+    volumes:
+      - .:/app
+    command:
+      - npm
+      - run
+      - start
