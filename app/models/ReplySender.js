@@ -3,7 +3,7 @@
 const request = require('request');
 
 class ReplySender {
-  construtor(config) {
+  constructor(config) {
     this.config = config;
   }
 
