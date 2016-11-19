@@ -1,2 +1,2 @@
 #!/bin/bash
-docker-compose run --rm node /bin/bash
+docker-compose run --rm node shell
