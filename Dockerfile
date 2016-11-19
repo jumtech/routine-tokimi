@@ -1,6 +1,9 @@
 # 元になるimageを指定
 FROM node
 
+# コマンド実行時のディレクトリ
+WORKDIR /root/routine-tokimi
+
 # 各種インストール
 # vim
 RUN apt-get update
