@@ -18,7 +18,6 @@ app.post('/callback', function(req, res, next) {
   events.forEach(function(event) {
     console.log("forEach");
     if (event.type == "message") {
-      var url = "https://api.line.me/v2/bot/message/reply";
       var postData = {
         "replyToken" : event.replyToken,
         "messages" : [
@@ -29,12 +28,14 @@ app.post('/callback', function(req, res, next) {
         ]
       };
       var options = {
-        "headers": {
+        url: "https://api.line.me/v2/bot/message/reply",
+        headers: {
           "Content-Type" : "application/json; charset=UTF-8",
           "Authorization" : "Bearer " + process.env.CHANNEL_ACCESS_TOKEN
         },
-        "payload": JSON.stringify(postData)
-      }
+        json: true,
+        body: postData
+      };
       request.post(url, options, function (err, res, body) {
         if (!err && res.statusCode == 200) {
           console.log(body);
