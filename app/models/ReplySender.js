@@ -3,25 +3,25 @@
 const request = require('request');
 
 class ReplySender {
-  constructor(config) {
+  constructor (config) {
     this.config = config;
   }
 
-  get baseOption() {
+  get baseOption () {
     return {
       url: "https://api.line.me/v2/bot/message/reply",
       headers: {
-        "Content-Type" : "application/json; charset=UTF-8",
-        "Authorization" : "Bearer " + this.config.token
+        "Content-Type": "application/json; charset=UTF-8",
+        "Authorization": "Bearer " + this.config.token
       },
-      json: true,
+      json: true
     };
   }
 
-  send(replyToken, messages) {
+  send (replyToken, messages) {
     var postData = {
-      "replyToken" : replyToken,
-      "messages" : messages,
+      "replyToken": replyToken,
+      "messages": messages
     };
 
     var options = Object.assign({}, this.baseOption, {

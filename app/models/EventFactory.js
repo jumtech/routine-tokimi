@@ -4,7 +4,7 @@ const MessageEvent = require('./MessageEvent.js');
 const PostbackEvent = require('./PostbackEvent.js');
 
 class EventFactory {
-  static create(data) {
+  static create (data) {
     switch (data.type) {
       case "message":
         return new MessageEvent(data);
