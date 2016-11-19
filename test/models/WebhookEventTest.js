@@ -22,5 +22,9 @@ describe('WebhookEvent', function() {
     });
     it('type', function() { assert(this.subject.type == "message") });
     it('timestamp', function() { assert(this.subject.timestamp == 1462629479859) });
+    it('source', function() {
+      assert(this.subject.source.type == "user");
+      assert(this.subject.source.userId == "U206d25c2ea6bd87c17655609a1c37cb8");
+    });
   });
 });

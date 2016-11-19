@@ -1,4 +1,5 @@
 'use strict';
+const SourceUser = require('./SourceUser.js');
 
 class WebhookEvent {
   constructor(data) {
@@ -11,7 +12,11 @@ class WebhookEvent {
     if (this._source) {
       return this._source;
     }
-    this._source = new Source(this.data['source']);
+    switch (this.data['source'].type) {
+      case "user":
+        this._source = new SourceUser(this.data['source']);
+          break;
+    }
     return this._source;
   }
 }
