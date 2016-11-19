@@ -34,8 +34,9 @@ app.post('/callback', function(req, res, next) {
         } else {
         // スタンプ等が送られた場合
           replyText = "ちょっと私には難しいなあ";
+          console.log("replyText:" + replyText);
         }
-        var gotText = event.message.text;
+        gotText = event.message.text;
         var postData = {
           "replyToken" : event.replyToken,
           "messages" : [
