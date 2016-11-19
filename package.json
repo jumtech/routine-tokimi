@@ -8,7 +8,8 @@
     "test": "mocha --require intelli-espower-loader test/**/*",
     "dev": "nf run nodemon index.js",
     "fmt": "npm-run-all fmt:*",
-    "fmt:js": "eslint **/*.js"
+    "fmt:app": "eslint index.js app/**/*.js",
+    "fmt:test": "eslint index.js --env mocha test/**/*.js"
   },
   "author": "",
   "license": "ISC",
