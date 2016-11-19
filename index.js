@@ -14,13 +14,17 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 
 app.post('/callback', function(req, res, next) {
+  // Web hookへのリクエストに200を返す
+  res.statusCode = 200;
+  res.end();
+
   var events = req.body.events;
   events.forEach(function(event) {
     switch (event.type) {
       case "message":
       // ユーザーから送られたテキスト
       var gotText = "";
-      // ユーザーに返す
+      // ユーザーに返すテキスト
       var replyText = "";
         if (event.message.type = "text") {
         // テキストが送られた場合
@@ -29,7 +33,7 @@ app.post('/callback', function(req, res, next) {
           console.log("replyText:" + replyText);
         } else {
         // スタンプ等が送られた場合
-          replyText = "ちょっと難しいなあ";
+          replyText = "ちょっと私には難しいなあ";
         }
         var gotText = event.message.text;
         var postData = {
@@ -66,22 +70,22 @@ app.post('/callback', function(req, res, next) {
         break;
     }
   });
-  // Web hookへのリクエストに200を返す
-  res.statusCode = 200;
-  res.end();
-  next();
 });
 
 _getSendText = function(gotText) {
+  const ADD = /登録|^と$/;
+  const START = /やる/;
+  const LIST = /みる|見る/;
+
   var replyText = "ん？バグかな？";
-  if (gotText.includes("登録")) {
+  if (gotText.match(ADD)) {
     replyText = "新しく登録するルーチン名を入力してね。短い方が覚えやすいから嬉しいな";
-  } else if (gotText.includes("やる")) {
+  } else if (gotText.match(START)) {
     replyText = "ルーチンを始めるんだね！頑張ろう！";
-  } else if (gotText.includes("みる")) {
+  } else if (gotText.match(LIST)) {
     replyText = "ルーチンに登録されているタスクは、こんな感じだよー";
   } else {
-    replyText = "よくわからんちー";
+    replyText = "新しくルーチンを登録するには、「登録」とか「と」とか言ってね。";
   }
   return replyText;
 };
