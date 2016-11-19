@@ -75,19 +75,31 @@ app.post('/callback', function(req, res, next) {
 
 _getSendText = function(gotText) {
   const ADD = /登録|^と$/;
-  const START = /やる/;
+  const RUN = /やる/;
   const LIST = /みる|見る/;
 
   var replyText = "ん？バグかな？";
-  if (gotText.match(ADD)) {
+  
+  // ルーチン登録
+  if (gotText.search(ADD) !== -1) {
     replyText = "新しく登録するルーチン名を入力してね。短い方が覚えやすいから嬉しいな";
-  } else if (gotText.match(START)) {
-    replyText = "ルーチンを始めるんだね！頑張ろう！";
-  } else if (gotText.match(LIST)) {
-    replyText = "ルーチンに登録されているタスクは、こんな感じだよー";
-  } else {
-    replyText = "新しくルーチンを登録するには、「登録」とか「と」とか言ってね。";
+    return replyText;
   }
+
+  // ルーチン実行
+  var RUNindex = gotText.search(RUN);
+  if (RUNindex !== -1) {
+    replyText = gotText.substring(0, RUNindex) + "のルーチンを始めるんだね！頑張ろう！";
+    return replyText;
+  }
+
+  // ルーチン確認
+  var LISTindex = gotText.search(LIST);
+  if (LISTindex !== -1) {
+    replyText = gotText.substring(0, LISTindex) + "のルーチンに登録されているタスクは、こんな感じだよー";
+    return replyText;
+  }
+  replyText = "新しくルーチンを登録するには、「登録」とか「と」とか言ってね。";
   return replyText;
 };
 
