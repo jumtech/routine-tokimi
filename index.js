@@ -13,17 +13,15 @@ app.use(bodyParser.json());
 
 
 app.post('/callback', function(req, res, next) {
-  console.log("receive POST...");
   var events = req.body.events;
   events.forEach(function(event) {
-    console.log("forEach");
     if (event.type == "message") {
       var postData = {
         "replyToken" : event.replyToken,
         "messages" : [
           {
             "type" : "text",
-            "text" : ((event.message.type=="text") ? event.message.text : "Text以外")
+            "text" : ((event.message.type=="text") ? event.message.text : "ちょっと難しいなあ")
           }
         ]
       };
@@ -59,4 +57,3 @@ app.get('/test', function(req, res) {
 });
 
 app.listen(process.env.PORT || 3000);
-console.log("server starting...");
