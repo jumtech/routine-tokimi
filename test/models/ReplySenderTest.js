@@ -13,7 +13,7 @@ describe('ReplySender', function () {
     });
     describe('headers', function () {
       it('Authorization', function () {
-        assert(this.headers['Authorization'] == 'Bearer test-token');
+        assert(this.headers['Authorization'] === 'Bearer test-token');
       });
     });
   });
