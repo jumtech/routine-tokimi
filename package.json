@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha test/**/*",
     "dev": "nf run nodemon index.js"
   },
   "author": "",
@@ -17,6 +17,7 @@
     "request": "^2.79.0"
   },
   "devDependencies": {
-    "foreman": "^2.0.0"
+    "foreman": "^2.0.0",
+    "mocha": "^3.1.2"
   }
 }
