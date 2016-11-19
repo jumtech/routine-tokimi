@@ -5,6 +5,8 @@ const request = require('request');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 
+const hkdnetHandler = require('./app/handlers/hkdnet.js');
+
 app.use(morgan("dev", {immediate: true}));
 app.use(bodyParser.urlencoded({
   extended: true
@@ -88,4 +90,6 @@ app.get('/test', function(req, res) {
   res.send("TOKIMI is AWAKE");
 });
 
+app.post('/hkdnet', hkdnetHandler);
 app.listen(process.env.PORT || 3000);
+console.log("server starting...");
