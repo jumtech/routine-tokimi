@@ -26,11 +26,11 @@ RUN npm install -g \
   nodemon
 
 ENTRYPOINT [ \
+  "prehook", "npm install", "--", \
   "switch", \
     "shell=/bin/bash", \
     "version=node -v", \
     "dev=npm run dev", \
     "--", \
-  "prehook", "npm install", "--", \
   "npm", "run", "start" \
 ]
