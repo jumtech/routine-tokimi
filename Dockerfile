@@ -1,5 +1,5 @@
 # 元になるimageを指定
-FROM node
+FROM node:7.1.0
 
 # コマンド実行時のディレクトリ
 WORKDIR /root/routine-tokimi
