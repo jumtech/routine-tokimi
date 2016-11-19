@@ -1,6 +1,12 @@
 var express = require('express');
 var app = express();
 var request = require('request');
+var bodyParser = require('body-parser');
+
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
+app.use(bodyParser.json());
 
 const headers = {
   "Content-Type" : "application/json; charset=UTF-8",
@@ -16,8 +22,7 @@ const options = {
 }
 
 app.post('/callback', function(req, res, next) {
-  var json = req.body;
-  var events = json.events;
+  var events = req.body.events;
   events.forEach(function(event) {
     if (event.type == "follow") {
       var postData = {
