@@ -26,7 +26,7 @@ app.post('/callback', function(req, res, next) {
       var gotText = "";
       // ユーザーに返すテキスト
       var replyText = "";
-        if (event.message.type = "text") {
+        if (event.message.type === "text") {
         // テキストが送られた場合
           gotText = event.message.text;
           replyText = _getSendText(gotText);
