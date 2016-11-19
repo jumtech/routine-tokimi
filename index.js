@@ -1,8 +1,11 @@
 var express = require('express');
 var app = express();
+
 var request = require('request');
+var morgan = require('morgan');
 var bodyParser = require('body-parser');
 
+app.use(morgan({ format: 'dev', immediate: true}));
 app.use(bodyParser.urlencoded({
   extended: true
 }));
@@ -22,18 +25,21 @@ const options = {
 }
 
 app.post('/callback', function(req, res, next) {
+  console.log("receive POST...");
   var events = req.body.events;
   events.forEach(function(event) {
-    if (event.type == "follow") {
+    console.log("forEach");
+    if (event.type == "message") {
       var postData = {
         "replyToken" : event.replyToken,
         "messages" : [
           {
             "type" : "text",
-            "text" : ((e.message.type=="text") ? e.message.text : "Text以外")
+            "text" : ((event.message.type=="text") ? event.message.text : "Text以外")
           }
         ]
       };
+      console.log(event);
       options.payload = JSON.stringify(postData);
       request.post(options, function (err, res, body) {
         if (!err && res.statusCode == 200) {
