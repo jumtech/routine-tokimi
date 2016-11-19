@@ -29,6 +29,7 @@ ENTRYPOINT [ \
   "switch", \
     "shell=/bin/bash", \
     "version=node -v", \
+    "dev=npm run dev", \
     "--", \
   "prehook", "npm install", "--", \
   "npm", "run", "start" \
