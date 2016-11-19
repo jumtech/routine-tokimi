@@ -2,7 +2,7 @@
 
 const SourceUser = require('./SourceUser.js');
 const SourceGroup = require('./SourceGroup.js');
-const SourceFactrory = require('./SourceFactory.js');
+const SourceRoom = require('./SourceRoom.js');
 
 class SourceFactory {
   static create(data) {
