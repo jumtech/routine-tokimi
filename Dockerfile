@@ -11,7 +11,7 @@ RUN apt-get update
 RUN apt-get -y install vim
 
 # expressコマンド
-RUN npm install -g express-generator
-
 # ファイル変更時に自動でサーバ再起動してくれるdemon
-RUN npm install -g nodemon
+RUN npm install -g \
+  express-generator \
+  nodemon
