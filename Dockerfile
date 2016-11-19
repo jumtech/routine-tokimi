@@ -2,7 +2,8 @@
 FROM node:7.1.0
 
 # コマンド実行時のディレクトリ
-WORKDIR /root/routine-tokimi
+RUN mkdir /app
+WORKDIR /app
 
 # 各種インストール
 # vim
