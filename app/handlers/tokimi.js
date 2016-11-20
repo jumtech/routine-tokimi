@@ -1,11 +1,13 @@
 'use strict';
 
+const fs = require('fs');
 const TextMessage = require('../models/TextMessage.js');
 const ReplySender = require('../models/ReplySender.js');
 const ReplySenderConfig = require('../models/ReplySenderConfig.js');
 const config = new ReplySenderConfig({token: process.env.CHANNEL_ACCESS_TOKEN});
 const sender = new ReplySender(config);
 var mode = "NORMAL";
+var submode = "";
 
 module.exports = function (req, res, next) {
   // Web hookへのリクエストに200を返す
@@ -63,6 +65,7 @@ function _makeSendMessages (gotText) {
       // ルーチン登録へ
       if (gotText.search(ADD) !== -1) {
         mode = "ADD";
+        submode = "INIT_ROUTINE";
         replyMessages = _makeTextMessages([
           "新しく登録するルーチン名を入力してね",
           "短い方が覚えやすいから嬉しいな"
@@ -100,7 +103,11 @@ function _makeSendMessages (gotText) {
 
     // ルーチン追加モード
     case "ADD":
-      replyMessages = _makeADDMessages(gotText);
+      if (gotText.includes("終了")) {
+        mode = "NORMAL";
+        submode = "FIN";
+      }
+      replyMessages = _reactInADDMode(gotText, replyMessages);
       return replyMessages;
 
     default:
@@ -112,23 +119,74 @@ function _makeSendMessages (gotText) {
   }
 };
 
-function _makeADDMessages (gotText) {
-  var replyMessages = [];
-  if (gotText.includes("終了")) {
-    mode = "NORMAL";
-    replyMessages = _makeTextMessages([
-      "新しいルーチンはこんな感じだよ！",
-      "ルーチン名：朝\n顔を洗う\n歯を磨く\n二度寝する",
-      "一緒に頑張ろうね！"
-    ]);
-    return replyMessages;
+function _reactInADDMode (gotText, replyMessages) {
+  switch (submode) {
+    case "INIT_ROUTINE":
+      _initRoutine(gotText);
+      replyMessages = _makeTextMessages([
+        "「" + gotText + "」のルーチンを登録するよ",
+        "順番に、タスクの名前を教えてね",
+        "私の台詞っぽく書くと、会話が自然になるよ",
+        "何ごとも、協力が大切だよねー"
+      ]);
+      submode = "ADD_TASK";
+      break;
+    case "ADD_TASK":
+      _addTask(gotText);
+      replyMessages = _makeTextMessages([
+        "おっけー。まだタスクあったら、教えてー"
+      ]);
+      submode = "ADD_TASK";
+      break;
+    case "FIN":
+      let texts = [];
+      texts = texts.concat(
+        ["新しいルーチンはこんな感じだよ！"],
+        _getRoutineTexts(),
+        ["以上！一緒に頑張ろうね！"]
+      );
+      replyMessages = _makeTextMessages(texts);
+      break;
+    default:
+      replyMessages = _makeTextMessages([
+        "これは...バグだ！！！"
+      ]);
   }
-  replyMessages = _makeTextMessages([
-    "おっけー。まだタスクあったら、教えてー"
-  ]);
   return replyMessages;
 }
 
+function _initRoutine (routineName) {
+  var data = {
+    routine: {
+      name: routineName,
+      tasks: []
+    }
+  };
+  fs.writeFileSync("../../tokimiDB.json", JSON.stringify(data));
+}
+function _addTask (taskName) {
+  var data = JSON.parse(fs.readFileSync("../../tokimiDB.json", "utf8"));
+  var routine = data.routine;
+  var tasks = routine.tasks;
+  var task = {
+    name: taskName
+  };
+  tasks.push(task);
+  routine.tasks = tasks;
+  data.routine = routine;
+  fs.writeFileSync("../../tokimiDB.json", JSON.stringify(data));
+}
+function _getRoutineTexts () {
+  var data = JSON.parse(fs.readFileSync("../../tokimiDB.json", "utf8"));
+  var routine = data.routine;
+  var tasks = routine.tasks;
+  var texts = [];
+  texts.push("ルーチン名：" + routine.name);
+  tasks.forEach(function (task) {
+    texts.push("「" + task.name + "」");
+  });
+  return texts;
+}
 function _makeTextMessages (textArr) {
   var messages = [];
   var data = {};
