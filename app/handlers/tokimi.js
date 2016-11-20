@@ -34,7 +34,8 @@ module.exports = function (req, res, next) {
         }
         // ログ出力：送信メッセージ
         replyMessages.forEach(function (message) {
-          console.log("reply:" + message.text);
+          console.log("replyMessage.type:" + message.type);
+          console.log("replyMessage.text:" + message.text);
         });
         // メッセージを返信
         sender.send(event.replyToken, replyMessages);
