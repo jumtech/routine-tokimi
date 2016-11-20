@@ -15,7 +15,7 @@ app.use(bodyParser.json());
 
 app.post('/callback', tokimiHandler);
 
-app.get('/test', function(req, res) {
+app.get('/test', function (req, res) {
   res.send("TOKIMI is AWAKE");
 });
 
