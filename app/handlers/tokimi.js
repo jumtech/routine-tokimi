@@ -187,14 +187,12 @@ function _getRoutineTexts () {
 }
 function _makeTextMessages (textArr) {
   var messages = [];
-  var data = {};
-  var message = "";
+  var message = {};
   textArr.forEach(function (text) {
-    data = {
+    message = {
       type: "text",
       text: text
     };
-    message = new TextMessage(data);
     messages.push(message);
   });
   return messages;
