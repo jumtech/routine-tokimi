@@ -26,19 +26,16 @@ module.exports = function (req, res, next) {
         // テキストが送られた場合
           gotText = event.message.text;
           replyMessages = _makeSendMessages(gotText);
-          replyMessages.forEach(function (message) {
-            console.log("reply:" + message.text);
-          });
         } else {
         // スタンプ等が送られた場合
           replyMessages = _makeTextMessages([
             "ちょっと私には難しいなあ"
           ]);
-          replyMessages.forEach(function (message) {
-            console.log("reply:" + message.text);
-          });
         }
-
+        // ログ出力：送信メッセージ
+        replyMessages.forEach(function (message) {
+          console.log("reply:" + message.text);
+        });
         // メッセージを返信
         sender.send(event.replyToken, replyMessages);
         break;
