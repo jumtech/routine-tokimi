@@ -134,6 +134,7 @@ function _makeSendMessages (gotText) {
 function _makeADDMessages (gotText) {
   var replyMessages = [];
   if (gotText.includes("終了")) {
+    mode = "NORMAL";
     replyMessages = [
       {
         "type": "text",
