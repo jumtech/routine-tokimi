@@ -27,9 +27,11 @@ class ReplySender {
     var options = Object.assign({}, this.baseOption, {
       body: postData
     });
+    console.log("START send: ", JSON.stringify(options));
     request.post(options, function (err, res, body) {
+      console.log("END send");
       if (!err && res.statusCode === 200) {
-        console.log(body);
+        console.log("success", body);
       } else {
         console.log('error: ' + JSON.stringify(res));
       }
