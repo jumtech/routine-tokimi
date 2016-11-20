@@ -3,7 +3,7 @@
 const TextMessage = require('./TextMessage.js');
 
 class MessageFactory {
-  static create(data) {
+  static create (data) {
     switch (data.type) {
       case "text":
         return new TextMessage(data);
