@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node index.js",
     "test": "mocha --require intelli-espower-loader test/**/*",
-    "dev": "nf run nodemon index.js"
+    "dev": "nf run nodemon index.js",
+    "fmt": "npm-run-all fmt:*",
+    "fmt:app": "eslint index.js app/**/*.js",
+    "fmt:test": "eslint index.js --env mocha test/**/*.js"
   },
   "author": "",
   "license": "ISC",
@@ -17,9 +20,13 @@
     "request": "^2.79.0"
   },
   "devDependencies": {
+    "eslint": "^3.10.2",
+    "eslint-plugin-promise": "^3.4.0",
+    "eslint-plugin-standard": "^2.0.1",
     "foreman": "^2.0.0",
     "intelli-espower-loader": "^1.0.1",
     "mocha": "^3.1.2",
+    "npm-run-all": "^3.1.1",
     "power-assert": "^1.4.2"
   }
 }

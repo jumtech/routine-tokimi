@@ -3,8 +3,8 @@ const WebhookEvent = require('./WebhookEvent.js');
 const MessageFactory = require('./MessageFactory.js');
 
 class MessageEvent extends WebhookEvent {
-  get replyToken() { return this.data.replyToken; }
-  get message() {
+  get replyToken () { return this.data.replyToken; }
+  get message () {
     if (this._message) {
       return this._message;
     }

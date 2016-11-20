@@ -5,7 +5,7 @@ const SourceGroup = require('./SourceGroup.js');
 const SourceRoom = require('./SourceRoom.js');
 
 class SourceFactory {
-  static create(data) {
+  static create (data) {
     switch (data.type) {
       case "user":
         return new SourceUser(data);
