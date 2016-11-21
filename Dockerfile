@@ -31,6 +31,7 @@ ENTRYPOINT [ \
     "shell=/bin/bash", \
     "version=node -v", \
     "dev=npm run dev", \
+    "sequelize=`npm bin` sequelize", \
     "--", \
   "npm", "run", "start" \
 ]
