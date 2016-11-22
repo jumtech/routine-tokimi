@@ -31,7 +31,8 @@ ENTRYPOINT [ \
     "shell=/bin/bash", \
     "version=node -v", \
     "dev=npm run dev", \
-    "sequelize=`npm bin` sequelize", \
+    "new-model=/app/node_modules/.bin/sequelize model:create", \
+    "migrate=/app/node_modules/.bin/sequelize db:migrate", \
     "--", \
   "npm", "run", "start" \
 ]
