@@ -20,9 +20,23 @@ And you can see "TOKIMI is AWAKE" at `http://localhost:8080/test`.
 
 - `docker-compose run [--rm] node version` to see the node version
 - `docker-compose run [--rm] node shell` to run bash
-  - to crate a new model, `docker-compose run --rm node shell` and `$(npm bin) model:create --name Task --attributes 'userId:string taskName:string'`
 - `docker-compose run [--rm] node migrate` to migrate
 - `docker-compose run [--rm] node rollback` to rollback the previous migration
 
-- exec `test-postreq.sh` in host
-  - you can see error log in docker console
+#### How to create a model
+
+To create a new model, exec bash in container first.
+
+```
+$ docker-compose run --rm node shell
+```
+
+Then, you can run sequelize-cli.
+
+```
+$ `npm bin`/sequelize model:create --name Task --attributes 'userId:string taskName:string'
+```
+
+#### Send a dummy message
+
+Run `test-postreq.sh` in host, and you can see error log in docker console.
