@@ -10,10 +10,13 @@ services:
     command:
       - dev
     links:
-      - postgres:postgresql
+      - postgres
+    environment:
+      POSTGRES_USER: postgres
   postgres:
     restart: always
-    image: postgres:9.6.1
+    build:
+      context: docker/db
     ports:
       - 5400:5432
     volumes:
