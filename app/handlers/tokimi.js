@@ -1,13 +1,40 @@
 'use strict';
 
-const fs = require('fs');
-const TextMessage = require('../models/TextMessage.js');
+const pg = require('pg');
 const ReplySender = require('../models/ReplySender.js');
 const ReplySenderConfig = require('../models/ReplySenderConfig.js');
 const config = new ReplySenderConfig({token: process.env.CHANNEL_ACCESS_TOKEN});
 const sender = new ReplySender(config);
 var mode = "NORMAL";
 var submode = "";
+const pgConfig = {
+  host: process.env.PG_HOST,
+  user: process.env.PG_USER,
+  password: process.env.PG_PASSWORD,
+  database: process.env.PG_DB,
+  port: process.env.PG_PORT,
+  max: 10,
+  idleTimeoutMills: 30000
+};
+const pool = new pg.Pool(pgConfig);
+pool.on("error", function (err, client) {
+  console.error("idle client error", err.message, err.stack);
+});
+
+function _insertTaskToDB (userId, taskName) {
+  pool.connect(function (err, client, done) {
+    if (err) {
+      return console.log(err);
+    }
+    var query = "insert into task (user_id, task_name) values ($1, $2)";
+    client.query(query, [userId, taskName], function (err, result) {
+      done();
+      if (err) {
+        return console.log(err);
+      }
+    });
+  });
+}
 
 module.exports = function (req, res, next) {
   // Web hookへのリクエストに200を返す
@@ -120,7 +147,6 @@ function _makeSendMessages (gotText) {
 function _reactInADDMode (gotText, replyMessages) {
   switch (submode) {
     case "INIT_ROUTINE":
-      _initRoutine(gotText);
       replyMessages = _makeTextMessages([
         "「" + gotText + "」のルーチンを登録するよ",
         "順番に、タスクの名前を教えてね",
@@ -130,7 +156,7 @@ function _reactInADDMode (gotText, replyMessages) {
       submode = "ADD_TASK";
       break;
     case "ADD_TASK":
-      _addTask(gotText);
+      _insertTaskToDB("sample_user_id", gotText);
       replyMessages = _makeTextMessages([
         "おっけー。まだタスクあったら、教えてー"
       ]);
@@ -153,36 +179,12 @@ function _reactInADDMode (gotText, replyMessages) {
   return replyMessages;
 }
 
-function _initRoutine (routineName) {
-  var data = {
-    routine: {
-      name: routineName,
-      tasks: []
-    }
-  };
-  fs.writeFileSync("../../tokimiDB.json", JSON.stringify(data));
-}
-function _addTask (taskName) {
-  var data = JSON.parse(fs.readFileSync("../../tokimiDB.json", "utf8"));
-  var routine = data.routine;
-  var tasks = routine.tasks;
-  var task = {
-    name: taskName
-  };
-  tasks.push(task);
-  routine.tasks = tasks;
-  data.routine = routine;
-  fs.writeFileSync("../../tokimiDB.json", JSON.stringify(data));
-}
 function _getRoutineTexts () {
-  var data = JSON.parse(fs.readFileSync("../../tokimiDB.json", "utf8"));
-  var routine = data.routine;
-  var tasks = routine.tasks;
   var texts = [];
-  texts.push("ルーチン名：" + routine.name);
-  tasks.forEach(function (task) {
-    texts.push("「" + task.name + "」");
-  });
+  texts.push("ルーチン名：" + "朝");
+  texts.push("「顔を洗おう」");
+  texts.push("「歯も磨いたら？」");
+  texts.push("「二度寝しちゃおう！」");
   return texts;
 }
 function _makeTextMessages (textArr) {

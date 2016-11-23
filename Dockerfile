@@ -31,6 +31,8 @@ ENTRYPOINT [ \
     "shell=/bin/bash", \
     "version=node -v", \
     "dev=npm run dev", \
+    "migrate=/app/node_modules/.bin/sequelize -c config/config.js db:migrate", \
+    "rollback=/app/node_modules/.bin/sequelize -c config/config.js db:migrate:undo", \
     "--", \
   "npm", "run", "start" \
 ]

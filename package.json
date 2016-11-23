@@ -8,8 +8,12 @@
     "test": "mocha --require intelli-espower-loader test/**/*",
     "dev": "nf run nodemon index.js",
     "fmt": "npm-run-all fmt:*",
-    "fmt:app": "eslint index.js app/**/*.js",
-    "fmt:test": "eslint index.js --env mocha test/**/*.js"
+    "fmt:app": "eslint --fix index.js app/**/*.js",
+    "fmt:config": "eslint --fix config/**/*.js",
+    "fmt:migrations": "eslint --fix migrations/**/*.js",
+    "fmt:models": "eslint --fix models/**/*.js",
+    "fmt:seeders": "eslint --fix seeders/**/*.js",
+    "fmt:test": "eslint --fix --env mocha test/**/*.js"
   },
   "author": "",
   "license": "ISC",
@@ -17,7 +21,10 @@
     "body-parser": "^1.15.2",
     "express": "^4.14.0",
     "morgan": "^1.7.0",
-    "request": "^2.79.0"
+    "pg": "^6.1.0",
+    "pg-hstore": "^2.3.2",
+    "request": "^2.79.0",
+    "sequelize": "^3.27.0"
   },
   "devDependencies": {
     "eslint": "^3.10.2",
@@ -27,6 +34,7 @@
     "intelli-espower-loader": "^1.0.1",
     "mocha": "^3.1.2",
     "npm-run-all": "^3.1.1",
-    "power-assert": "^1.4.2"
+    "power-assert": "^1.4.2",
+    "sequelize-cli": "^2.4.0"
   }
 }
