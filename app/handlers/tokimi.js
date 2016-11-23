@@ -1,38 +1,19 @@
 'use strict';
 
-const pg = require('pg');
 const ReplySender = require('../models/ReplySender.js');
 const ReplySenderConfig = require('../models/ReplySenderConfig.js');
 const config = new ReplySenderConfig({token: process.env.CHANNEL_ACCESS_TOKEN});
 const sender = new ReplySender(config);
+const db = require('../../models/index.js');
+const Task = db.Task;
 var mode = "NORMAL";
 var submode = "";
-const pgConfig = {
-  host: process.env.PG_HOST,
-  user: process.env.PG_USER,
-  password: process.env.PG_PASSWORD,
-  database: process.env.PG_DB,
-  port: process.env.PG_PORT,
-  max: 10,
-  idleTimeoutMills: 30000
-};
-const pool = new pg.Pool(pgConfig);
-pool.on("error", function (err, client) {
-  console.error("idle client error", err.message, err.stack);
-});
 
 function _insertTaskToDB (userId, taskName) {
-  pool.connect(function (err, client, done) {
-    if (err) {
-      return console.log(err);
-    }
-    var query = "insert into task (user_id, task_name) values ($1, $2)";
-    client.query(query, [userId, taskName], function (err, result) {
-      done();
-      if (err) {
-        return console.log(err);
-      }
-    });
+  let task = Task.build({userId, taskName});
+  return task.save().catch(err => {
+    console.error(err);
+    return Promise.reject(err);
   });
 }
 
