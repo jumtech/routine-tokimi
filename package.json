@@ -8,8 +8,12 @@
     "test": "mocha --require intelli-espower-loader test/**/*",
     "dev": "nf run nodemon index.js",
     "fmt": "npm-run-all fmt:*",
-    "fmt:app": "eslint index.js app/**/*.js",
-    "fmt:test": "eslint index.js --env mocha test/**/*.js"
+    "fmt:app": "eslint --fix index.js app/**/*.js",
+    "fmt:config": "eslint --fix config/**/*.js",
+    "fmt:migrations": "eslint --fix migrations/**/*.js",
+    "fmt:models": "eslint --fix models/**/*.js",
+    "fmt:seeders": "eslint --fix seeders/**/*.js",
+    "fmt:test": "eslint --fix --env mocha test/**/*.js"
   },
   "author": "",
   "license": "ISC",
