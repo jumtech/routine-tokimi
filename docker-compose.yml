@@ -11,6 +11,8 @@ services:
       - dev
     links:
       - postgres
+    environment:
+      POSTGRES_USER: postgres
   postgres:
     restart: always
     build:
