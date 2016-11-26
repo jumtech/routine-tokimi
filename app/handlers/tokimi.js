@@ -5,12 +5,12 @@ const ReplySenderConfig = require('../models/ReplySenderConfig.js');
 const config = new ReplySenderConfig({token: process.env.CHANNEL_ACCESS_TOKEN});
 const sender = new ReplySender(config);
 const db = require('../../models/index.js');
-const Task = db.Task;
+const Task = db.task;
 var mode = "NORMAL";
 var submode = "";
 
 function _insertTaskToDB (userId, taskName) {
-  let task = Task.build({userId, taskName});
+  let task = Task.build({user_id: userId, task_name: taskName});
   return task.save().catch(err => {
     console.error(err);
     return Promise.reject(err);
