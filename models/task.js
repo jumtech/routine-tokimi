@@ -1,14 +1,14 @@
 'use strict';
-module.exports = function (sequelize, DataTypes) {
-  var Task = sequelize.define('Task', {
-    userId: DataTypes.STRING,
-    taskName: DataTypes.STRING
+module.exports = function(sequelize, DataTypes) {
+  var task = sequelize.define('task', {
+    user_id: DataTypes.STRING,
+    task_name: DataTypes.STRING
   }, {
     classMethods: {
-      associate: function (models) {
+      associate: function(models) {
         // associations can be defined here
       }
     }
   });
-  return Task;
+  return task;
 };

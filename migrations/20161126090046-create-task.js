@@ -1,17 +1,17 @@
 'use strict';
 module.exports = {
-  up: function (queryInterface, Sequelize) {
-    return queryInterface.createTable('Tasks', {
+  up: function(queryInterface, Sequelize) {
+    return queryInterface.createTable('tasks', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      userId: {
+      user_id: {
         type: Sequelize.STRING
       },
-      taskName: {
+      task_name: {
         type: Sequelize.STRING
       },
       createdAt: {
@@ -24,7 +24,7 @@ module.exports = {
       }
     });
   },
-  down: function (queryInterface, Sequelize) {
-    return queryInterface.dropTable('Tasks');
+  down: function(queryInterface, Sequelize) {
+    return queryInterface.dropTable('tasks');
   }
 };
