@@ -6,6 +6,8 @@ const config = new ReplySenderConfig({token: process.env.CHANNEL_ACCESS_TOKEN});
 const sender = new ReplySender(config);
 const db = require('../../models/index.js');
 const Task = db.task;
+const uuid = require('node-uuid');
+
 var mode = "NORMAL";
 var submode = "";
 
@@ -137,7 +139,8 @@ function _reactInADDMode (gotText, replyMessages) {
       submode = "ADD_TASK";
       break;
     case "ADD_TASK":
-      _insertTaskToDB("sample_user_id", "sample_task_id", gotText);
+      var taskId = uuid.v1();
+      _insertTaskToDB("sample_user_id", taskId, gotText);
       replyMessages = _makeTextMessages([
         "おっけー。まだタスクあったら、教えてー"
       ]);
