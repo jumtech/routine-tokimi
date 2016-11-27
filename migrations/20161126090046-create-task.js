@@ -9,9 +9,18 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       user_id: {
+        allowNull: false,
+        type: Sequelize.STRING
+      },
+      task_id: {
+        allowNull: false,
         type: Sequelize.STRING
       },
       task_name: {
+        allowNull: false,
+        type: Sequelize.STRING
+      },
+      next_task_id: {
         type: Sequelize.STRING
       },
       createdAt: {
