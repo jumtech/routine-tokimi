@@ -6,14 +6,53 @@ const config = new ReplySenderConfig({token: process.env.CHANNEL_ACCESS_TOKEN});
 const sender = new ReplySender(config);
 const db = require('../../models/index.js');
 const Task = db.task;
+const Routine = db.routine;
 const uuid = require('node-uuid');
 
 var mode = "NORMAL";
 var submode = "";
+var current_routine_name = "";
+var current_task_id = "";
 
-function _insertTaskToDB (userId, taskId, taskName) {
-  let task = Task.build({user_id: userId, task_id: taskId, task_name: taskName});
+function _insertRoutine (userId, routineName) {
+  let routine = Routine.build({user_id: userId, routine_name: routineName, first_task_id: null});
+  return routine.save().catch(err => {
+    console.error(err);
+    return Promise.reject(err);
+  });
+}
+
+function _updateRoutineWithFirst_task_id (userId, routineName, taskId) {
+  return Routine.update({
+    first_task_id: taskId
+  }, {
+    where: {
+      user_id: userId,
+      routine_name: routineName
+    }
+  }).catch(err => {
+    console.error(err);
+    return Promise.reject(err);
+  });
+}
+
+function _insertTask (userId, taskId, taskName) {
+  let task = Task.build({user_id: userId, task_id: taskId, task_name: taskName, next_task_id: null});
   return task.save().catch(err => {
+    console.error(err);
+    return Promise.reject(err);
+  });
+}
+
+function _updateTaskWithNext_task_id (userId, previousTaskId, nextTaskId) {
+  return Task.update({
+    next_task_id: nextTaskId
+  },{
+    where: {
+      user_id: userId,
+      task_id: previousTaskId
+    }
+  }).catch(err => {
     console.error(err);
     return Promise.reject(err);
   });
@@ -130,20 +169,36 @@ function _makeSendMessages (gotText) {
 function _reactInADDMode (gotText, replyMessages) {
   switch (submode) {
     case "INIT_ROUTINE":
+      _insertRoutine("sample_user_id", gotText);
+      current_routine_name = gotText;
       replyMessages = _makeTextMessages([
         "「" + gotText + "」のルーチンを登録するよ",
         "順番に、タスクの名前を教えてね",
         "私の台詞っぽく書くと、会話が自然になるよ",
         "何ごとも、協力が大切だよねー"
       ]);
+      submode = "ADD_FIRST_TASK";
+      break;
+    case "ADD_FIRST_TASK":
+      var taskId = uuid.v1();
+      let routineName = current_routine_name;
+      _updateRoutineWithFirst_task_id("sample_user_id", routineName, taskId);
+      _insertTask("sample_user_id", taskId, gotText);
+      replyMessages = _makeTextMessages([
+        "おっけー。まだタスクあったら、教えてー"
+      ]);
+      current_task_id = taskId;
       submode = "ADD_TASK";
       break;
     case "ADD_TASK":
       var taskId = uuid.v1();
-      _insertTaskToDB("sample_user_id", taskId, gotText);
+      _insertTask("sample_user_id", taskId, gotText);
       replyMessages = _makeTextMessages([
         "おっけー。まだタスクあったら、教えてー"
       ]);
+      let previousTaskId = current_task_id;
+      _updateTaskWithNext_task_id("sample_user_id", previousTaskId, taskId);
+      current_task_id = taskId;
       submode = "ADD_TASK";
       break;
     case "FIN":
