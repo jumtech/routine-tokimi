@@ -14,6 +14,7 @@ module.exports = {
       },
       task_id: {
         allowNull: false,
+        unique: true,
         type: Sequelize.STRING
       },
       task_name: {
