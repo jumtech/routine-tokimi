@@ -9,8 +9,8 @@ const Task = db.task;
 var mode = "NORMAL";
 var submode = "";
 
-function _insertTaskToDB (userId, taskName) {
-  let task = Task.build({user_id: userId, task_name: taskName});
+function _insertTaskToDB (userId, taskId, taskName) {
+  let task = Task.build({user_id: userId, task_id: taskId, task_name: taskName});
   return task.save().catch(err => {
     console.error(err);
     return Promise.reject(err);
@@ -137,7 +137,7 @@ function _reactInADDMode (gotText, replyMessages) {
       submode = "ADD_TASK";
       break;
     case "ADD_TASK":
-      _insertTaskToDB("sample_user_id", gotText);
+      _insertTaskToDB("sample_user_id", "sample_task_id", gotText);
       replyMessages = _makeTextMessages([
         "おっけー。まだタスクあったら、教えてー"
       ]);
