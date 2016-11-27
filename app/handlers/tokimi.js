@@ -14,50 +14,6 @@ var submode = "";
 var current_routine_name = "";
 var current_task_id = "";
 
-function _insertRoutine (userId, routineName) {
-  let routine = Routine.build({user_id: userId, routine_name: routineName, first_task_id: null});
-  return routine.save().catch(err => {
-    console.error(err);
-    return Promise.reject(err);
-  });
-}
-
-function _updateRoutineWithFirst_task_id (userId, routineName, taskId) {
-  return Routine.update({
-    first_task_id: taskId
-  }, {
-    where: {
-      user_id: userId,
-      routine_name: routineName
-    }
-  }).catch(err => {
-    console.error(err);
-    return Promise.reject(err);
-  });
-}
-
-function _insertTask (userId, taskId, taskName) {
-  let task = Task.build({user_id: userId, task_id: taskId, task_name: taskName, next_task_id: null});
-  return task.save().catch(err => {
-    console.error(err);
-    return Promise.reject(err);
-  });
-}
-
-function _updateTaskWithNext_task_id (userId, previousTaskId, nextTaskId) {
-  return Task.update({
-    next_task_id: nextTaskId
-  },{
-    where: {
-      user_id: userId,
-      task_id: previousTaskId
-    }
-  }).catch(err => {
-    console.error(err);
-    return Promise.reject(err);
-  });
-}
-
 module.exports = function (req, res, next) {
   // Web hookへのリクエストに200を返す
   res.statusCode = 200;
@@ -65,6 +21,7 @@ module.exports = function (req, res, next) {
 
   var events = req.body.events;
   events.forEach(function (event) {
+    let userId = event.source.userId;
     switch (event.type) {
       case "message":
         // ユーザーから送られたテキスト
@@ -74,7 +31,7 @@ module.exports = function (req, res, next) {
         if (event.message.type === "text") {
         // テキストが送られた場合
           gotText = event.message.text;
-          replyMessages = _makeSendMessages(gotText);
+          replyMessages = _makeSendMessages(userId, gotText);
         } else {
         // スタンプ等が送られた場合
           replyMessages = _makeTextMessages([
@@ -99,7 +56,7 @@ module.exports = function (req, res, next) {
   });
 };
 
-function _makeSendMessages (gotText) {
+function _makeSendMessages (userId, gotText) {
   var replyMessages = [];
 
   // 現在のモードで分岐
@@ -154,7 +111,7 @@ function _makeSendMessages (gotText) {
         mode = "NORMAL";
         submode = "FIN";
       }
-      replyMessages = _reactInADDMode(gotText, replyMessages);
+      replyMessages = _reactInADDMode(userId, gotText, replyMessages);
       return replyMessages;
 
     default:
@@ -166,10 +123,10 @@ function _makeSendMessages (gotText) {
   }
 };
 
-function _reactInADDMode (gotText, replyMessages) {
+function _reactInADDMode (userId, gotText, replyMessages) {
   switch (submode) {
     case "INIT_ROUTINE":
-      _insertRoutine("sample_user_id", gotText);
+      _insertRoutine(userId, gotText);
       current_routine_name = gotText;
       replyMessages = _makeTextMessages([
         "「" + gotText + "」のルーチンを登録するよ",
@@ -182,8 +139,8 @@ function _reactInADDMode (gotText, replyMessages) {
     case "ADD_FIRST_TASK":
       var taskId = uuid.v1();
       let routineName = current_routine_name;
-      _updateRoutineWithFirst_task_id("sample_user_id", routineName, taskId);
-      _insertTask("sample_user_id", taskId, gotText);
+      _updateRoutineWithFirst_task_id(userId, routineName, taskId);
+      _insertTask(userId, taskId, gotText);
       replyMessages = _makeTextMessages([
         "おっけー。まだタスクあったら、教えてー"
       ]);
@@ -192,12 +149,12 @@ function _reactInADDMode (gotText, replyMessages) {
       break;
     case "ADD_TASK":
       var taskId = uuid.v1();
-      _insertTask("sample_user_id", taskId, gotText);
+      _insertTask(userId, taskId, gotText);
       replyMessages = _makeTextMessages([
         "おっけー。まだタスクあったら、教えてー"
       ]);
       let previousTaskId = current_task_id;
-      _updateTaskWithNext_task_id("sample_user_id", previousTaskId, taskId);
+      _updateTaskWithNext_task_id(userId, previousTaskId, taskId);
       current_task_id = taskId;
       submode = "ADD_TASK";
       break;
@@ -216,6 +173,50 @@ function _reactInADDMode (gotText, replyMessages) {
       ]);
   }
   return replyMessages;
+}
+
+function _insertRoutine (userId, routineName) {
+  let routine = Routine.build({user_id: userId, routine_name: routineName, first_task_id: null});
+  return routine.save().catch(err => {
+    console.error(err);
+    return Promise.reject(err);
+  });
+}
+
+function _updateRoutineWithFirst_task_id (userId, routineName, taskId) {
+  return Routine.update({
+    first_task_id: taskId
+  }, {
+    where: {
+      user_id: userId,
+      routine_name: routineName
+    }
+  }).catch(err => {
+    console.error(err);
+    return Promise.reject(err);
+  });
+}
+
+function _insertTask (userId, taskId, taskName) {
+  let task = Task.build({user_id: userId, task_id: taskId, task_name: taskName, next_task_id: null});
+  return task.save().catch(err => {
+    console.error(err);
+    return Promise.reject(err);
+  });
+}
+
+function _updateTaskWithNext_task_id (userId, previousTaskId, nextTaskId) {
+  return Task.update({
+    next_task_id: nextTaskId
+  },{
+    where: {
+      user_id: userId,
+      task_id: previousTaskId
+    }
+  }).catch(err => {
+    console.error(err);
+    return Promise.reject(err);
+  });
 }
 
 function _getRoutineTexts () {
