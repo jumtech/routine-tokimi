@@ -8,8 +8,15 @@ const sender = new ReplySender(config);
 module.exports = function (req, res, next) {
   res.statusCode = 200;
   res.end();
-  var events = req.body.events;
+  console.log("Start processing...");
+  console.log("body: " + JSON.stringify(req.body));
+  var events = req.body && req.body.events;
+  if (!events || !events.forEach) {
+    console.error("Invalid request!");
+    return;
+  }
   events.forEach(function (event) {
+    console.log("event: " + JSON.stringify(event));
     if (event.type === "message") {
       var messages = [
         {
