@@ -9,18 +9,18 @@ const Task = db.task;
 const Routine = db.routine;
 const uuid = require('node-uuid');
 
-var mode = "NORMAL";
-var submode = "";
-var current_routine_name = "";
-var current_task_id = "";
+let mode = "NORMAL";
+let submode = "";
+let DBcurrentRoutineName = "";
+let DBcurrentTaskId = "";
 
 module.exports = function (req, res, next) {
   // Web hookへのリクエストに200を返す
   res.statusCode = 200;
   res.end();
 
-  var events = req.body.events;
-  events.forEach(function (event) {
+  let events = req.body.events;
+  events.forEach(event => {
     let userId = event.source.userId;
     switch (event.type) {
       case "message":
@@ -42,7 +42,7 @@ module.exports = function (req, res, next) {
   });
 };
 
-function _replyToMessage(userId, replyToken, gotText) {
+function _replyToMessage (userId, replyToken, gotText) {
   _makeSendMessages(userId, gotText)
     .then(messages => {
       messages.forEach(message => {
@@ -55,7 +55,7 @@ function _replyToMessage(userId, replyToken, gotText) {
     });
 }
 
-function _replyToSticker(userId, replyToken) {
+function _replyToSticker (userId, replyToken) {
   let messages = _makeTextMessages([
     "ちょっと私には難しいなあ"
   ]);
@@ -64,8 +64,7 @@ function _replyToSticker(userId, replyToken) {
 
 function _makeSendMessages (userId, gotText) {
   return new Promise((resolve, reject) => {
-
-    var replyMessages = [];
+    let replyMessages = [];
     // 現在のモードで分岐
     switch (mode) {
       // 通常モード：メッセージ内容に応じてモード変更
@@ -85,7 +84,7 @@ function _makeSendMessages (userId, gotText) {
           return;
         }
         // ルーチン実行へ
-        var RUNindex = gotText.search(RUN);
+        let RUNindex = gotText.search(RUN);
         if (RUNindex !== -1) {
           mode = "RUN";
           let routineName = gotText.substring(0, RUNindex);
@@ -97,7 +96,7 @@ function _makeSendMessages (userId, gotText) {
           return;
         }
         // ルーチン確認へ
-        var LISTindex = gotText.search(LIST);
+        let LISTindex = gotText.search(LIST);
         if (LISTindex !== -1) {
           mode = "LIST";
           let routineName = gotText.substring(0, LISTindex);
@@ -127,7 +126,7 @@ function _makeSendMessages (userId, gotText) {
           })
           .catch(err => {
             reject(err);
-          })
+          });
         break;
       default:
         mode = "NORMAL";
@@ -136,20 +135,18 @@ function _makeSendMessages (userId, gotText) {
         ]);
         resolve(replyMessages);
     }
-  })
+  });
 }
 
-function _getReplyMessagesInADDMode(userId, gotText, replyMessages) {
+function _getReplyMessagesInADDMode (userId, gotText, replyMessages) {
   return new Promise((resolve, reject) => {
-    let currentRoutineName = current_routine_name;
-    let currentTaskId = current_task_id;
+    let currentRoutineName = DBcurrentRoutineName;
+    let currentTaskId = DBcurrentTaskId;
     switch (submode) {
       case "INIT_ROUTINE":
-        console.log("@@@INIT_ROUTINE");
         _insertRoutine(userId, gotText)
           .then(() => {
-            console.log("@@@then_INIT_ROUTINE");
-            current_routine_name = gotText;
+            DBcurrentRoutineName = gotText;
             replyMessages = _makeTextMessages([
               "「" + gotText + "」のルーチンを登録するよ",
               "順番に、タスクの名前を教えてね",
@@ -157,50 +154,46 @@ function _getReplyMessagesInADDMode(userId, gotText, replyMessages) {
               "何ごとも、協力が大切だよねー"
             ]);
             submode = "ADD_FIRST_TASK";
-            console.log("@@@Promise.resolve(replyMessages): " + Promise.resolve(replyMessages));
             resolve(replyMessages);
           })
           .catch(err => {
-            console.log("@@@catch_INIT_ROUTINE");
             reject(err);
           });
         break;
       case "ADD_FIRST_TASK":
-        var taskId = uuid.v1();
-        _updateRoutineWithFirst_task_id(userId, currentRoutineName, taskId)
-          .then(() => _insertTask(userId, taskId, gotText))
+        let firstTaskId = uuid.v1();
+        _updateRoutineWithFirstTaskId(userId, currentRoutineName, firstTaskId)
+          .then(() => _insertTask(userId, firstTaskId, gotText))
           .then(() => {
             replyMessages = _makeTextMessages([
               "おっけー。まだタスクあったら、教えてー"
             ]);
-            current_task_id = taskId;
+            DBcurrentTaskId = firstTaskId;
             submode = "ADD_TASK";
             resolve(replyMessages);
           })
           .catch(err => {
             reject(err);
-          })
+          });
         break;
       case "ADD_TASK":
-        var taskId = uuid.v1();
+        let taskId = uuid.v1();
         _insertTask(userId, taskId, gotText)
-          .then(() => _updateTaskWithNext_task_id(userId, currentTaskId, taskId))
+          .then(() => _updateTaskWithNextTaskId(userId, currentTaskId, taskId))
           .then(() => {
             replyMessages = _makeTextMessages([
               "おっけー。まだタスクあったら、教えてー"
             ]);
-            current_task_id = taskId;
+            DBcurrentTaskId = taskId;
             submode = "ADD_TASK";
             resolve(replyMessages);
           })
           .catch(err => {
             reject(err);
-          })
+          });
         break;
       case "FIN":
         let texts = [];
-        let routineName = "";
-        let taskNames = [];
         _fetchRoutineTexts(userId, currentRoutineName)
           .then(routineTexts => {
             texts = texts.concat(
@@ -208,7 +201,6 @@ function _getReplyMessagesInADDMode(userId, gotText, replyMessages) {
               routineTexts,
               ["以上！一緒に頑張ろうね！"]
             );
-            console.log("@@@" + routineTexts);
             replyMessages = _makeTextMessages(texts);
             resolve(replyMessages);
           })
@@ -220,7 +212,7 @@ function _getReplyMessagesInADDMode(userId, gotText, replyMessages) {
         ]);
         resolve(replyMessages);
     }
-  })
+  });
 }
 
 function _insertRoutine (userId, routineName) {
@@ -230,7 +222,7 @@ function _insertRoutine (userId, routineName) {
   });
 }
 
-function _updateRoutineWithFirst_task_id (userId, routineName, taskId) {
+function _updateRoutineWithFirstTaskId (userId, routineName, taskId) {
   return Routine.update({
     first_task_id: taskId
   }, {
@@ -250,10 +242,10 @@ function _insertTask (userId, taskId, taskName) {
   });
 }
 
-function _updateTaskWithNext_task_id (userId, previousTaskId, nextTaskId) {
+function _updateTaskWithNextTaskId (userId, previousTaskId, nextTaskId) {
   return Task.update({
     next_task_id: nextTaskId
-  },{
+  }, {
     where: {
       user_id: userId,
       task_id: previousTaskId
@@ -281,7 +273,7 @@ function _fetchRoutineTexts (userId, routineName) {
       .catch(err => {
         reject(err);
       });
-  })
+  });
 }
 
 function _findRoutine (userId, routineName) {
@@ -290,7 +282,7 @@ function _findRoutine (userId, routineName) {
       user_id: userId,
       routine_name: routineName
     }
-  })
+  });
 }
 
 function _findTask (userId, taskId) {
@@ -299,13 +291,13 @@ function _findTask (userId, taskId) {
       user_id: userId,
       task_id: taskId
     }
-  })
+  });
 }
 
 function _makeTextMessages (textArr) {
-  var messages = [];
-  var message = {};
-  textArr.forEach(function (text) {
+  let messages = [];
+  let message = {};
+  textArr.forEach(text => {
     message = {
       type: "text",
       text: text
