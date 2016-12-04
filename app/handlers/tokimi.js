@@ -177,7 +177,9 @@ function _getReplyMessagesInADDMode(userId, gotText, replyMessages) {
             submode = "ADD_TASK";
             resolve(replyMessages);
           })
-          .catch(err => Promise.reject(err))
+          .catch(err => {
+            reject(err);
+          })
         break;
       case "ADD_TASK":
         var taskId = uuid.v1();
