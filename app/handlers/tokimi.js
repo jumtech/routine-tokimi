@@ -9,6 +9,10 @@ const Task = db.task;
 const Routine = db.routine;
 const uuid = require('node-uuid');
 
+const ADD_RGX = /登録|^と$/;
+const RUN_RGX = /やる/;
+const LIST_RGX = /みる|見る/;
+
 let mode = "NORMAL";
 let submode = "";
 let DBcurrentRoutineName = "";
@@ -22,14 +26,15 @@ module.exports = function (req, res, next) {
   let events = req.body.events;
   events.forEach(event => {
     let userId = event.source.userId;
+    let replyToken = event.replyToken;
     switch (event.type) {
       case "message":
         if (event.message.type === "text") {
         // テキストが送られた場合
-          _replyToMessage(userId, event.replyToken, event.message.text);
+          _replyToMessage(userId, replyToken, event.message.text);
         } else {
         // スタンプ等が送られた場合
-          _replyToSticker(userId, event.replyToken);
+          _replyToNotMessage(userId, replyToken);
         }
         break;
       case "follow":
@@ -43,7 +48,7 @@ module.exports = function (req, res, next) {
 };
 
 function _replyToMessage (userId, replyToken, gotText) {
-  _makeSendMessages(userId, gotText)
+  _makeReplyMessages(userId, gotText)
     .then(messages => {
       messages.forEach(message => {
         console.log("@@@replyMessages.text:" + message.text);
@@ -55,64 +60,27 @@ function _replyToMessage (userId, replyToken, gotText) {
     });
 }
 
-function _replyToSticker (userId, replyToken) {
+function _replyToNotMessage (userId, replyToken) {
   let messages = _makeTextMessages([
     "ちょっと私には難しいなあ"
   ]);
   sender.send(replyToken, messages);
 }
 
-function _makeSendMessages (userId, gotText) {
+function _makeReplyMessages (userId, gotText) {
   return new Promise((resolve, reject) => {
     let replyMessages = [];
     // 現在のモードで分岐
     switch (mode) {
       // 通常モード：メッセージ内容に応じてモード変更
       case "NORMAL":
-        const ADD = /登録|^と$/;
-        const RUN = /やる/;
-        const LIST = /みる|見る/;
-        // ルーチン登録へ
-        if (gotText.search(ADD) !== -1) {
-          mode = "ADD";
-          submode = "INIT_ROUTINE";
-          replyMessages = _makeTextMessages([
-            "新しく登録するルーチン名を入力してね",
-            "短い方が覚えやすいから嬉しいな"
-          ]);
-          resolve(replyMessages);
-          return;
-        }
-        // ルーチン実行へ
-        let RUNindex = gotText.search(RUN);
-        if (RUNindex !== -1) {
-          mode = "RUN";
-          let routineName = gotText.substring(0, RUNindex);
-          replyMessages = _makeTextMessages([
-            routineName + "のルーチンを始めるんだね！",
-            "頑張ろう！"
-          ]);
-          resolve(replyMessages);
-          return;
-        }
-        // ルーチン確認へ
-        let LISTindex = gotText.search(LIST);
-        if (LISTindex !== -1) {
-          mode = "LIST";
-          let routineName = gotText.substring(0, LISTindex);
-          replyMessages = _makeTextMessages([
-            routineName + "のルーチンに登録されているタスクは、こんな感じだよー",
-            "頑張ろう！"
-          ]);
-          resolve(replyMessages);
-          return;
-        }
-        // default
-        mode = "NORMAL";
-        replyMessages = _makeTextMessages([
-          "新しくルーチンを登録するには、「登録」とか「と」とか言ってね。"
-        ]);
-        resolve(replyMessages);
+        _makeReplyMessagesInNormalMode(gotText)
+          .then(messages => {
+            resolve(messages);
+          })
+          .catch(err => {
+            reject(err);
+          });
         break;
       // ルーチン追加モード
       case "ADD":
@@ -120,7 +88,7 @@ function _makeSendMessages (userId, gotText) {
           mode = "NORMAL";
           submode = "FIN";
         }
-        _getReplyMessagesInADDMode(userId, gotText, replyMessages)
+        _makeReplyMessagesInADDMode(userId, gotText, replyMessages)
           .then(messages => {
             resolve(messages);
           })
@@ -137,24 +105,87 @@ function _makeSendMessages (userId, gotText) {
     }
   });
 }
+function _makeReplyMessagesInNormalMode (gotText) {
+  return new Promise((resolve, reject) => {
+    // ルーチン登録へ
+    if (gotText.search(ADD_RGX) !== -1) {
+      _makeReplyMessagesWhenInitRoutine()
+        .then(messages => {
+          resolve(messages);
+        });
+      return;
+    }
+    // ルーチン実行へ
+    let RUNIndex = gotText.search(RUN_RGX);
+    if (RUNIndex !== -1) {
+      _makeReplyMessagesWhenStartRun(gotText, RUNIndex)
+        .then(messages => {
+          resolve(messages);
+        });
+      return;
+    }
+    // ルーチン確認へ
+    let LISTIndex = gotText.search(LIST_RGX);
+    if (LISTIndex !== -1) {
+      _makeReplyMessagesWhenList(gotText, LISTIndex)
+        .then(messages => {
+          resolve(messages);
+        });
+      return;
+    }
+    // default
+    _makeReplyMessagesWhenDefault()
+      .then(messages => {
+        resolve(messages);
+      });
+    return;
+  });
+}
+function _makeReplyMessagesWhenInitRoutine () {
+  mode = "ADD";
+  submode = "INIT_ROUTINE";
+  let replyMessages = _makeTextMessages([
+    "新しく登録するルーチン名を入力してね",
+    "短い方が覚えやすいから嬉しいな"
+  ]);
+  return Promise.resolve(replyMessages);
+}
+function _makeReplyMessagesWhenStartRun (gotText, RUNIndex) {
+  mode = "RUN";
+  submode = "START_RUN";
+  let routineName = gotText.substring(0, RUNIndex);
+  let replyMessages = _makeTextMessages([
+    routineName + "のルーチンを始めるんだね！",
+    "頑張ろう！"
+  ]);
+  return Promise.resolve(replyMessages);
+}
+function _makeReplyMessagesWhenList (gotText, LISTIndex) {
+  mode = "LIST";
+  let routineName = gotText.substring(0, LISTIndex);
+  let replyMessages = _makeTextMessages([
+    routineName + "のルーチンに登録されているタスクは、こんな感じだよー",
+    "頑張ろう！"
+  ]);
+  return Promise.resolve(replyMessages);
+}
+function _makeReplyMessagesWhenDefault () {
+  let replyMessages = _makeTextMessages([
+    "新しくルーチンを登録するには、「登録」とか「と」とか言ってね。"
+  ]);
+  return Promise.resolve(replyMessages);
+}
 
-function _getReplyMessagesInADDMode (userId, gotText, replyMessages) {
+function _makeReplyMessagesInADDMode (userId, gotText, replyMessages) {
   return new Promise((resolve, reject) => {
     let currentRoutineName = DBcurrentRoutineName;
     let currentTaskId = DBcurrentTaskId;
     switch (submode) {
       case "INIT_ROUTINE":
         _insertRoutine(userId, gotText)
-          .then(() => {
-            DBcurrentRoutineName = gotText;
-            replyMessages = _makeTextMessages([
-              "「" + gotText + "」のルーチンを登録するよ",
-              "順番に、タスクの名前を教えてね",
-              "私の台詞っぽく書くと、会話が自然になるよ",
-              "何ごとも、協力が大切だよねー"
-            ]);
-            submode = "ADD_FIRST_TASK";
-            resolve(replyMessages);
+          .then(() => _makeReplyMessagesAfterInsertRoutine(gotText))
+          .then((messages) => {
+            resolve(messages);
           })
           .catch(err => {
             reject(err);
@@ -193,18 +224,13 @@ function _getReplyMessagesInADDMode (userId, gotText, replyMessages) {
           });
         break;
       case "FIN":
-        let texts = [];
-        _fetchRoutineTexts(userId, currentRoutineName)
-          .then(routineTexts => {
-            texts = texts.concat(
-              ["新しいルーチンはこんな感じだよ！"],
-              routineTexts,
-              ["以上！一緒に頑張ろうね！"]
-            );
-            replyMessages = _makeTextMessages(texts);
-            resolve(replyMessages);
+        _makeReplyMessagesWhenFinishAdd(userId, currentRoutineName)
+          .then(messages => {
+            resolve(messages);
           })
-          .catch(err => Promise.reject(err));
+          .catch(err => {
+            reject(err);
+          });
         break;
       default:
         replyMessages = _makeTextMessages([
@@ -215,6 +241,17 @@ function _getReplyMessagesInADDMode (userId, gotText, replyMessages) {
   });
 }
 
+function _makeReplyMessagesAfterInsertRoutine (gotText) {
+  DBcurrentRoutineName = gotText;
+  let replyMessages = _makeTextMessages([
+    "「" + gotText + "」のルーチンを登録するよ",
+    "順番に、タスクの名前を教えてね",
+    "私の台詞っぽく書くと、会話が自然になるよ",
+    "何ごとも、協力が大切だよねー"
+  ]);
+  submode = "ADD_FIRST_TASK";
+  return Promise.resolve(replyMessages);
+}
 function _insertRoutine (userId, routineName) {
   let routine = Routine.build({user_id: userId, routine_name: routineName, first_task_id: null});
   return routine.save().catch(err => {
@@ -255,20 +292,26 @@ function _updateTaskWithNextTaskId (userId, previousTaskId, nextTaskId) {
   });
 }
 
-function _fetchRoutineTexts (userId, routineName) {
+function _makeReplyMessagesWhenFinishAdd (userId, routineName) {
   return new Promise((resolve, reject) => {
     let texts = [];
     _findRoutine(userId, routineName)
       .then(routine => {
-        console.log("routine.routine_name: " + routine.routine_name);
-        let nextTaskId = routine.first_task_id;
         texts.push("ルーチン名：" + routineName);
-        return _findTask(userId, nextTaskId);
+        let firstTaskId = routine.first_task_id;
+        return _findTasksByFirstTaskId(userId, firstTaskId);
       })
-      .then(task => {
-        console.log("task.task_name: " + task.task_name);
-        texts.push("「" + task.task_name + "」");
-        resolve(texts);
+      .then(tasks => {
+        tasks.forEach(task => {
+          texts.push("「" + task.task_name + "」");
+        });
+        texts = [].concat(
+          ["新しいルーチンはこんな感じだよ！"],
+          texts,
+          ["以上！一緒に頑張ろうね！"]
+        );
+        let replyMessages = _makeTextMessages(texts);
+        resolve(replyMessages);
       })
       .catch(err => {
         reject(err);
@@ -291,6 +334,24 @@ function _findTask (userId, taskId) {
       user_id: userId,
       task_id: taskId
     }
+  });
+}
+
+function _findTasksByFirstTaskId (userId, firstTaskId) {
+  return new Promise((resolve, reject) => {
+    let tasks = [];
+    _findTask(userId, firstTaskId)
+      .then(task => {
+        tasks.push(task);
+        return _findTask(userId, task.next_task_id);
+      })
+      .then(task => {
+        tasks.push(task);
+        resolve(tasks);
+      })
+      .catch(err => {
+        reject(err);
+      });
   });
 }
 
