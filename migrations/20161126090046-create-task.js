@@ -12,11 +12,11 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING
       },
-      task_id: {
-        allowNull: false,
-        unique: true,
-        type: Sequelize.STRING
-      },
+      //task_id: {
+      //  allowNull: false,
+      //  unique: true,
+      //  type: Sequelize.STRING
+      //},
       task_name: {
         allowNull: false,
         type: Sequelize.STRING

@@ -7,7 +7,6 @@ const sender = new ReplySender(config);
 const db = require('../../models/index.js');
 const Task = db.task;
 const Routine = db.routine;
-const uuid = require('node-uuid');
 
 const ADD_RGX = /登録|^と$/;
 const RUN_RGX = /やる/;
@@ -178,8 +177,8 @@ function _makeReplyMessagesWhenDefault () {
 
 function _makeReplyMessagesInADDMode (userId, gotText, replyMessages) {
   return new Promise((resolve, reject) => {
-    let currentRoutineName = DBcurrentRoutineName;
-    let currentTaskId = DBcurrentTaskId;
+    let currentRoutineName = null;
+    let currentTaskId = null;
     switch (submode) {
       case "INIT_ROUTINE":
         _insertRoutine(userId, gotText)
@@ -192,31 +191,33 @@ function _makeReplyMessagesInADDMode (userId, gotText, replyMessages) {
           });
         break;
       case "ADD_FIRST_TASK":
-        let firstTaskId = uuid.v1();
-        _updateRoutineWithFirstTaskId(userId, currentRoutineName, firstTaskId)
-          .then(() => _insertTask(userId, firstTaskId, gotText))
+        currentRoutineName = DBcurrentRoutineName;
+        _insertTask(userId, gotText)
+          .then((task) => {
+            DBcurrentTaskId = task.id;
+            return _updateRoutineWithFirstTaskId(userId, currentRoutineName, task.id);
+          })
           .then(() => {
             replyMessages = _makeTextMessages([
               "おっけー。まだタスクあったら、教えてー"
             ]);
-            DBcurrentTaskId = firstTaskId;
-            submode = "ADD_TASK";
+            submode = "ADD_NEXT_TASK";
             resolve(replyMessages);
           })
           .catch(err => {
             reject(err);
           });
         break;
-      case "ADD_TASK":
-        let taskId = uuid.v1();
-        _insertTask(userId, taskId, gotText)
-          .then(() => _updateTaskWithNextTaskId(userId, currentTaskId, taskId))
+      case "ADD_NEXT_TASK":
+        currentTaskId = DBcurrentTaskId;
+        _insertTask(userId, gotText)
+          .then((task) => _updateTaskWithNextTaskId(currentTaskId, task.id))
           .then(() => {
             replyMessages = _makeTextMessages([
               "おっけー。まだタスクあったら、教えてー"
             ]);
             DBcurrentTaskId = taskId;
-            submode = "ADD_TASK";
+            submode = "ADD_NEXT_TASK";
             resolve(replyMessages);
           })
           .catch(err => {
@@ -224,6 +225,7 @@ function _makeReplyMessagesInADDMode (userId, gotText, replyMessages) {
           });
         break;
       case "FIN":
+        currentRoutineName = DBcurrentRoutineName;
         _makeReplyMessagesWhenFinishAdd(userId, currentRoutineName)
           .then(messages => {
             resolve(messages);
@@ -272,24 +274,35 @@ function _updateRoutineWithFirstTaskId (userId, routineName, taskId) {
   });
 }
 
-function _insertTask (userId, taskId, taskName) {
-  let task = Task.build({user_id: userId, task_id: taskId, task_name: taskName, next_task_id: null});
-  return task.save().catch(err => {
-    return Promise.reject(err);
-  });
+function _insertTask (userId, taskName) {
+  return new Promise((resolve, reject) => {
+    let task = Task.build({user_id: userId, task_name: taskName, next_task_id: null});
+    task.save()
+      .then(task => {
+        resolve(task);
+      })
+      .catch(err => {
+        reject(err);
+      });
+  })
 }
 
-function _updateTaskWithNextTaskId (userId, previousTaskId, nextTaskId) {
-  return Task.update({
-    next_task_id: nextTaskId
-  }, {
-    where: {
-      user_id: userId,
-      task_id: previousTaskId
-    }
-  }).catch(err => {
-    return Promise.reject(err);
-  });
+function _updateTaskWithNextTaskId (currentTaskId, nextTaskId) {
+  return new Promise((resolve, reject) => {
+    Task.update({
+      next_task_id: nextTaskId
+    }, {
+      where: {
+        id: currentTaskId
+      }
+    })
+    .then(task => {
+      resolve(task);
+    })
+    .catch(err => {
+      reject(err);
+    });
+  })
 }
 
 function _makeReplyMessagesWhenFinishAdd (userId, routineName) {
@@ -328,11 +341,10 @@ function _findRoutine (userId, routineName) {
   });
 }
 
-function _findTask (userId, taskId) {
+function _findTaskById (taskId) {
   return Task.findOne({
     where: {
-      user_id: userId,
-      task_id: taskId
+      id: taskId
     }
   });
 }
@@ -340,10 +352,10 @@ function _findTask (userId, taskId) {
 function _findTasksByFirstTaskId (userId, firstTaskId) {
   return new Promise((resolve, reject) => {
     let tasks = [];
-    _findTask(userId, firstTaskId)
+    _findTaskById(firstTaskId)
       .then(task => {
         tasks.push(task);
-        return _findTask(userId, task.next_task_id);
+        return _findTaskById(task.next_task_id);
       })
       .then(task => {
         tasks.push(task);

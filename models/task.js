@@ -2,7 +2,7 @@
 module.exports = function(sequelize, DataTypes) {
   var task = sequelize.define('task', {
     user_id: DataTypes.STRING,
-    task_id: DataTypes.STRING,
+    //task_id: DataTypes.STRING,
     task_name: DataTypes.STRING,
     next_task_id: DataTypes.STRING
   }, {
