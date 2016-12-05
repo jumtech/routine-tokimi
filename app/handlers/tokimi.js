@@ -211,12 +211,14 @@ function _makeReplyMessagesInADDMode (userId, gotText, replyMessages) {
       case "ADD_NEXT_TASK":
         currentTaskId = DBcurrentTaskId;
         _insertTask(userId, gotText)
-          .then((task) => _updateTaskWithNextTaskId(currentTaskId, task.id))
+          .then((task) => {
+            DBcurrentTaskId = task.id;
+            return _updateTaskWithNextTaskId(currentTaskId, task.id)
+          })
           .then(() => {
             replyMessages = _makeTextMessages([
               "おっけー。まだタスクあったら、教えてー"
             ]);
-            DBcurrentTaskId = taskId;
             submode = "ADD_NEXT_TASK";
             resolve(replyMessages);
           })
@@ -312,7 +314,7 @@ function _makeReplyMessagesWhenFinishAdd (userId, routineName) {
       .then(routine => {
         texts.push("ルーチン名：" + routineName);
         let firstTaskId = routine.first_task_id;
-        return _findTasksByFirstTaskId(userId, firstTaskId);
+        return _findTasksByFirstTaskId(firstTaskId);
       })
       .then(tasks => {
         tasks.forEach(task => {
@@ -349,21 +351,34 @@ function _findTaskById (taskId) {
   });
 }
 
-function _findTasksByFirstTaskId (userId, firstTaskId) {
+function _findTasksByFirstTaskId (firstTaskId) {
   return new Promise((resolve, reject) => {
     let tasks = [];
-    _findTaskById(firstTaskId)
-      .then(task => {
-        tasks.push(task);
-        return _findTaskById(task.next_task_id);
-      })
-      .then(task => {
-        tasks.push(task);
+    _loop(_findTaskById(firstTaskId), _action, tasks)
+      .then(tasks => {
         resolve(tasks);
       })
       .catch(err => {
         reject(err);
       });
+    function _loop (promise, fn, tasks) {
+      return promise
+        .then(task => fn(task))
+        .then(result => {
+          if (result.nextTaskId) {
+            return _loop(_findTaskById(result.nextTaskId), _action, result.tasks);
+          } else {
+            return Promise.resolve(result.tasks);
+          }
+        });
+    }
+    function _action (task) {
+      tasks.push(task);
+      return {
+        nextTaskId: task.next_task_id,
+        tasks: tasks
+      };
+    }
   });
 }
 
