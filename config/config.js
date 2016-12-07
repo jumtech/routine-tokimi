@@ -12,7 +12,8 @@ const testValue = {
   "database": "tokimi_test"
 };
 const productionValue = {
-  "database": "tokimi_production"
+  "database": "tokimi_production",
+  "use_env_variable": "DATABASE_URL"
 };
 
 module.exports = {
