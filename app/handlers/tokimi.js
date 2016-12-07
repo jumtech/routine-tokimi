@@ -310,19 +310,20 @@ function _updateTaskWithNextTaskId (currentTaskId, nextTaskId) {
 function _makeReplyMessagesWhenFinishAdd (userId, routineName) {
   return new Promise((resolve, reject) => {
     let texts = [];
+    let routineText = "";
     _findRoutine(userId, routineName)
       .then(routine => {
-        texts.push("ルーチン名：" + routineName);
+        routineText += "ルーチン名：" + routineName;
         let firstTaskId = routine.first_task_id;
         return _findTasksByFirstTaskId(firstTaskId);
       })
       .then(tasks => {
         tasks.forEach(task => {
-          texts.push("「" + task.task_name + "」");
+          routineText += "\n「" + task.task_name + "」";
         });
         texts = [].concat(
           ["新しいルーチンはこんな感じだよ！"],
-          texts,
+          [routineText],
           ["以上！一緒に頑張ろうね！"]
         );
         let replyMessages = _makeTextMessages(texts);
