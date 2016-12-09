@@ -19,7 +19,6 @@ services:
     build:
       context: line-console
     ports:
-      - 80:3001
       - 3001:80
     volumes:
       - ./line-console:/app
