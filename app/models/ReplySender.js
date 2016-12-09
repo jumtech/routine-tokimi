@@ -8,8 +8,11 @@ class ReplySender {
   }
 
   get baseOption () {
+    let url = process.env.NODE_ENV === 'development'
+      ? "http://console/message"
+      : "https://api.line.me/v2/bot/message/reply";
     return {
-      url: "https://api.line.me/v2/bot/message/reply",
+      url: url,
       headers: {
         "Content-Type": "application/json; charset=UTF-8",
         "Authorization": "Bearer " + this.config.token
