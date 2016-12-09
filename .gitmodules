@@ -1,0 +1,3 @@
+[submodule "line-console"]
+	path = line-console
+	url = git@github.com:hkdnet/line-console.git
